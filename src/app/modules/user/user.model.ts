@@ -1,5 +1,7 @@
 import { Schema, model } from 'mongoose';
 import { TAddress, TOrders, TUser, UserModel } from './user.interface';
+import bcrypt from 'bcrypt';
+import config from '../../config';
 
 const OrdersSchema = new Schema<TOrders>({
   productName: { type: String, required: true },
@@ -20,7 +22,11 @@ const userSchema = new Schema<TUser, UserModel>({
     required: [true, 'User Name is required'],
     unique: true,
   },
-  password: { type: String, required: [true, 'Password is required'] },
+  password: {
+    type: String,
+    required: [true, 'Password is required'],
+    maxlength: [20, 'password can not be more 20 character'],
+  },
   fullName: {
     firstName: {
       type: String,
@@ -44,10 +50,22 @@ const userSchema = new Schema<TUser, UserModel>({
   orders: [OrdersSchema],
 });
 
-// Create a custom mehthod
-userSchema.statics.isUserExists = async function(userId:number){
+// pre save middleware likes password has
+userSchema.pre('save', async function (next) {
+
+  const user = this;
+ user.password= await  bcrypt.hash(user.password, Number(config.salt_Rounds))
+ next()
+
+});
+
+// post save middleware / hook
+userSchema.post('save', function () {});
+
+// Create a custom mehthod user exists check
+userSchema.statics.isUserExists = async function (userId: number) {
   const existingUser = await User.findOne({ userId });
   return existingUser;
-}
+};
 
 export const User = model<TUser, UserModel>('User', userSchema);
