@@ -3,23 +3,21 @@ import { UserServices } from './user.service';
 import UserValidationSchema from './user.validation';
 const createUser = async (req: Request, res: Response) => {
   try {
-
     // data Validation by zod
 
-    
-
     const { user: userData } = req.body;
-    const zodData = UserValidationSchema.parse(userData)
+    const zodData = UserValidationSchema.parse(userData);
     const result = await UserServices.createUserInDB(zodData);
     res.status(200).json({
       success: true,
       message: 'User created successfully!',
       data: result,
     });
-  } catch (error) {
+  } catch (error:any) {
+    console.log(error);
     res.status(500).json({
       success: false,
-      message: 'something went wrong',
+      message: error.message || 'something went wrong',
       error,
     });
   }
