@@ -20,8 +20,22 @@ const getSingleUserFromDb = async (userId: string) => {
   return result;
 };
 
+// Put User data
+const updateSingleUserData =async (userId: string, updatedUserData: Partial<TUser>) => {
+  const result = await User.findOneAndUpdate({ userId }, updatedUserData, { new: true });
+  return result;
+}
+// Delete User by id
+
+const deleteUserData =async (userId:string) => {
+  const result = await User.deleteOne({ userId });
+  return result;
+}
+
 export const UserServices = {
   createUserInDB,
   getAllUserFromDb,
   getSingleUserFromDb,
+  updateSingleUserData,
+  deleteUserData
 };
