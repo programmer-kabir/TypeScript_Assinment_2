@@ -7,15 +7,22 @@ const AddressValidationSchema = z.object({
   });
   
   // Define Zod schema for Orders
-  const OrdersValidationSchema = z.object({
-    productName: z.string(),
-    price: z.number(),
-    quantity: z.number(),
+  const orderSchema = z.object({
+    productName: z.string({
+      required_error: 'productName is required',
+    }),
+    price: z.number({
+      required_error: 'price is required and must be a number',
+    }),
+    quantity: z.number({
+      required_error: 'quantity is required and must be a number',
+    }),
   });
+  
   
   // Define Zod schema for User
   const UserValidationSchema = z.object({
-    userId: z.number(),
+    userId: z.string(),
     username: z.string(),
     password: z.string(),
     fullName: z.object({
@@ -27,7 +34,6 @@ const AddressValidationSchema = z.object({
     hobbies: z.array(z.string()),
     address: AddressValidationSchema,
     email: z.string().email(),
-    orders: z.array(OrdersValidationSchema),
-  });
-
+    orders: z.array(orderSchema).optional(),
+  })
   export default UserValidationSchema;

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { UserServices } from './user.service';
 import UserValidationSchema from './user.validation';
-import { string, z } from 'zod';
+import bcrypt from 'bcrypt';
+import config from '../../config';
 const createUser = async (req: Request, res: Response) => {
   try {
     // data Validation by zod
@@ -14,10 +15,10 @@ const createUser = async (req: Request, res: Response) => {
       message: 'User created successfully!',
       data: result,
     });
-  } catch (error: any) {
+  } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message || 'something went wrong',
+      message:'something went wrong',
       error,
     });
   }
@@ -26,12 +27,18 @@ const createUser = async (req: Request, res: Response) => {
 const getAllUser = async (req: Request, res: Response) => {
   try {
     const result = await UserServices.getAllUserFromDb();
-
-    res.status(200).json({
-      success: true,
-      message: 'Users fetched successfully!',
-      data: result,
-    });
+    if (!result || result.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: 'somethin went wrong on fetching',
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'Users fetched successfully!',
+        data: result,
+      });
+    }
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -54,22 +61,21 @@ const getSingleUser = async (req: Request, res: Response) => {
           description: 'User not found!',
         },
       });
-    } else{
+    } else {
       res.status(200).json({
         success: true,
         message: 'User fetched successfully!',
         data: result,
       });
-    
     }
   } catch (error) {
     res.status(500).json({
       success: false,
       message: 'User not found',
-      error:{
+      error: {
         code: 404,
-        description: "User not found!"
-      }
+        description: 'User not found!',
+      },
     });
   }
 };
@@ -78,26 +84,32 @@ const getSingleUser = async (req: Request, res: Response) => {
 const updateUser = async (req: Request, res: Response) => {
   try {
     // Validate and extract data from the request body
-    const {userId} = req.params;
+    const { userId } = req.params;
     const body = req.body;
-    console.log(body);
-    const result = await UserServices.updateSingleUserData(userId,body)
+    const password = body.password;
+    if (password) {
+      const hashedPassword = await bcrypt.hash(
+        password,
+        Number(config.salt_Rounds),
+      );
+      body.password = hashedPassword;
+    }
+    const result = await UserServices.updateSingleUserData(userId, body);
     if (!result) {
       res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: 'Filed Not found!',
         error: {
           code: 404,
-          description: 'User not found!',
+          description: 'Filed Not found!',
         },
       });
-    } else{
+    } else {
       res.status(200).json({
         success: true,
         message: 'User update successfully!',
         data: result,
       });
-    
     }
   } catch (error) {
     res.status(500).json({
@@ -108,7 +120,6 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-// Delete User
 // Delete User
 const deleteUser = async (req: Request, res: Response) => {
   try {
@@ -141,10 +152,83 @@ const deleteUser = async (req: Request, res: Response) => {
 };
 
 
+// 
+const createOrder = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const orderData = req.body;
+
+    // console.log(userId, orderData);
+    const result = await UserServices.createOrderToDB(userId, orderData);
+    res.status(200).json({
+      success: true,
+      message: 'order created successfully!',
+      data: null,
+    });
+  } catch (err) {
+    res.status(400).json({
+
+      success: false,
+      // message: err.message,
+      error: {
+        code: 404,
+        description: 'User not found!',
+      },
+    });
+  }
+};
+
+const getAllOrders = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const result = await UserServices.getAllOrderByUserFromDB(userId);
+    res.status(200).json({
+      success: true,
+      message: 'Order faced successfully',
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      // message: error.message,
+      error: {
+        code: 400,
+        description: 'User not found!',
+      },
+    });
+  }
+};
+
+const getTotalPriceOfOrders = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await UserServices.getTotalPriceOfOrdersFromDB(userId);
+    res.status(200).json({
+      success: true,
+      message: 'Total price calculated successfully!',
+      data: result,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      // message: error.message,
+      error: {
+        code: 400,
+        description: 'User not found!',
+      },
+    });
+  }
+};
+
+
 export const userController = {
   createUser,
   getAllUser,
   getSingleUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  createOrder,
+  getAllOrders,
+  getTotalPriceOfOrders
 };

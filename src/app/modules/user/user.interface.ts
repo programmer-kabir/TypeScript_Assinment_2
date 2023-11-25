@@ -1,17 +1,7 @@
-import { Model } from "mongoose";
+import { Model } from 'mongoose';
 
-export type TOrders = {
-  productName: string;
-  price: number;
-  quantity: number;
-};
-export type TAddress = {
-  street: string;
-  city: string;
-  country: string;
-};
 export type TUser = {
-  userId: number;
+  userId: string;
   username: string;
   password: string;
   fullName: {
@@ -21,11 +11,29 @@ export type TUser = {
   age: number;
   email: string;
   isActive: boolean;
-  hobbies: [string, string];
-  address: TAddress;
-  orders: TOrders;
+  hobbies: string[];
+  address: {
+    street: string;
+    city: string;
+    country: string;
+  };
+  orders?: 
+    {
+      productName: string;
+      price: number;
+      quantity: number;
+    }[] | undefined,
+  
 };
 
-export interface UserModel extends Model<TUser> {
-  isUserExists(userId: number): Promise<TUser | null>;
-}
+export type userMethods = {
+  isUserExists(userId: string): Promise<TUser | null>;
+};
+
+// export interface UserModel extends Model<TUser> {
+//   isUserExists(userId: string): Promise<TUser | null>;
+// }
+// export interface UserModel extends Model<TUser> {
+//   isUserExists(userId: number): Promise<TUser | null>;
+// }
+export type customModel = Model<TUser, Record<string, never>, userMethods>;
