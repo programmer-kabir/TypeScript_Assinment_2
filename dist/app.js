@@ -12,6 +12,6 @@ app.use((0, cors_1.default)());
 // Application Router
 app.use('/api/users', user_route_1.userRoutes);
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.send('server running!');
 });
 exports.default = app;
